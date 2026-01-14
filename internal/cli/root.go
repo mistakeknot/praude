@@ -3,13 +3,23 @@ package cli
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/mistakeknot/praude/internal/cli/commands"
+	"github.com/mistakeknot/praude/internal/project"
+	"github.com/mistakeknot/praude/internal/tui"
 	"github.com/spf13/cobra"
 )
 
 func Execute() error {
 	return NewRoot().Execute()
+}
+
+var runTUI = func() error {
+	m := tui.NewModel()
+	p := tea.NewProgram(m)
+	_, err := p.Run()
+	return err
 }
 
 func NewRoot() *cobra.Command {
@@ -21,13 +31,18 @@ func NewRoot() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if _, err := os.Stat(filepath.Join(cwd, ".praude")); err != nil {
+			if _, err := os.Stat(project.RootDir(cwd)); err != nil {
 				fmt.Fprintln(cmd.OutOrStdout(), "Not initialized. Run `praude init` first.")
 				return nil
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "TUI not wired yet.")
-			return nil
+			return runTUI()
 		},
 	}
+	root.AddCommand(
+		commands.ListCmd(),
+		commands.ShowCmd(),
+		commands.RunCmd(),
+		commands.ResearchCmd(),
+	)
 	return root
 }
