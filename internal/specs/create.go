@@ -35,6 +35,8 @@ files_to_modify:
   - action: "create"
     path: "path/to/file"
     description: "Why this file"
+research:
+  - ".praude/research/PRD-001-YYYYMMDD-HHMMSS.md"
 complexity: "medium"
 estimated_minutes: 25
 priority: 1

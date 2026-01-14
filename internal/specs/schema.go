@@ -33,6 +33,7 @@ type Spec struct {
 	Requirements     []string              `yaml:"requirements"`
 	Acceptance       []AcceptanceCriterion `yaml:"acceptance_criteria"`
 	FilesToModify    []FileChange          `yaml:"files_to_modify"`
+	Research         []string              `yaml:"research"`
 	Complexity       string                `yaml:"complexity"`
 	EstimatedMinutes int                   `yaml:"estimated_minutes"`
 	Priority         int                   `yaml:"priority"`
