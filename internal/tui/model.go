@@ -13,18 +13,22 @@ type Model struct {
 	summaries []specs.Summary
 	selected  int
 	err       string
+	root      string
+	mode      string
+	interview interviewState
+	input     string
 }
 
 func NewModel() Model {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return Model{err: err.Error()}
+		return Model{err: err.Error(), mode: "list"}
 	}
 	if _, err := os.Stat(project.RootDir(cwd)); err != nil {
-		return Model{err: "Not initialized"}
+		return Model{err: "Not initialized", root: cwd, mode: "list"}
 	}
 	list, _ := specs.LoadSummaries(project.SpecsDir(cwd))
-	return Model{summaries: list}
+	return Model{summaries: list, root: cwd, mode: "list"}
 }
 
 func (m Model) Init() tea.Cmd { return nil }
@@ -32,9 +36,31 @@ func (m Model) Init() tea.Cmd { return nil }
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
+		key := msg.String()
+		if msg.Type == tea.KeyEnter {
+			key = "enter"
+		}
+		if msg.Type == tea.KeyBackspace {
+			key = "backspace"
+		}
+		if m.mode == "interview" {
+			switch key {
+			case "q", "ctrl+c":
+				return m, tea.Quit
+			default:
+				m.handleInterviewInput(key)
+			}
+			return m, nil
+		}
+		switch key {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "g":
+			if m.err == "" {
+				m.mode = "interview"
+				m.interview = startInterview(m.root)
+				m.input = ""
+			}
 		case "j", "down":
 			if m.selected < len(m.summaries)-1 {
 				m.selected++
@@ -49,6 +75,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	if m.mode == "interview" {
+		left := []string{"INTERVIEW"}
+		right := m.renderInterview()
+		return joinColumns(left, right, 42)
+	}
 	left := m.renderList()
 	right := m.renderDetail()
 	return joinColumns(left, right, 42)
@@ -89,6 +120,17 @@ func (m Model) renderDetail() []string {
 	lines = append(lines, "Title: "+sel.Title)
 	lines = append(lines, "Summary: "+sel.Summary)
 	return lines
+}
+
+func (m *Model) reloadSummaries() {
+	if m.root == "" {
+		return
+	}
+	list, _ := specs.LoadSummaries(project.SpecsDir(m.root))
+	m.summaries = list
+	if m.selected >= len(m.summaries) {
+		m.selected = 0
+	}
 }
 
 func joinColumns(left, right []string, leftWidth int) string {
