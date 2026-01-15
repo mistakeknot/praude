@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 
 func ValidateCmd() *cobra.Command {
 	var mode string
+	var jsonOut bool
 	cmd := &cobra.Command{
 		Use:   "validate <id>",
 		Short: "Validate a PRD spec",
@@ -50,6 +52,17 @@ func ValidateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if jsonOut {
+				payload := validationJSON{
+					ID:       id,
+					Mode:     selected,
+					Errors:   res.Errors,
+					Warnings: res.Warnings,
+				}
+				enc := json.NewEncoder(cmd.OutOrStdout())
+				enc.SetIndent("", "  ")
+				return enc.Encode(payload)
+			}
 			if len(res.Errors) > 0 {
 				return fmt.Errorf("validation failed: %s", strings.Join(res.Errors, "; "))
 			}
@@ -69,7 +82,15 @@ func ValidateCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&mode, "mode", "", "Validation mode (hard|soft)")
+	cmd.Flags().BoolVar(&jsonOut, "json", false, "Print validation results as JSON")
 	return cmd
+}
+
+type validationJSON struct {
+	ID       string   `json:"id"`
+	Mode     string   `json:"mode"`
+	Errors   []string `json:"errors"`
+	Warnings []string `json:"warnings"`
 }
 
 func validateMode(mode string) error {
