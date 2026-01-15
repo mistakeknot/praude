@@ -15,6 +15,7 @@ func TestInitCreatesPraudeLayout(t *testing.T) {
 		filepath.Join(root, ".praude"),
 		filepath.Join(root, ".praude", "specs"),
 		filepath.Join(root, ".praude", "research"),
+		filepath.Join(root, ".praude", "suggestions"),
 		filepath.Join(root, ".praude", "briefs"),
 	}
 	for _, dir := range mustDir {
