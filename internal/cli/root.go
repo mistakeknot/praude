@@ -44,6 +44,7 @@ func NewRoot() *cobra.Command {
 		commands.ShowCmd(),
 		commands.RunCmd(),
 		commands.ResearchCmd(),
+		commands.ValidateCmd(),
 	)
 	return root
 }

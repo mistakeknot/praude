@@ -15,6 +15,20 @@ func TestRootCommandHasInit(t *testing.T) {
 	}
 }
 
+func TestRootCommandHasValidate(t *testing.T) {
+	cmd := NewRoot()
+	found := false
+	for _, sub := range cmd.Commands() {
+		if sub.Name() == "validate" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected validate command")
+	}
+}
+
 func TestRootRunPromptsWhenNotInitialized(t *testing.T) {
 	root := t.TempDir()
 	cwd, err := os.Getwd()
