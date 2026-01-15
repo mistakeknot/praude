@@ -154,6 +154,8 @@ func (m Model) renderDetail() []string {
 	lines = append(lines, "Summary: "+sel.Summary)
 	if spec, err := specs.LoadSpec(sel.Path); err == nil {
 		lines = append(lines, formatCompleteness(spec))
+		lines = append(lines, formatCUJDetail(spec))
+		lines = append(lines, formatResearchDetail(spec))
 	}
 	return lines
 }
@@ -182,6 +184,39 @@ func formatCompleteness(spec specs.Spec) string {
 		len(spec.MarketResearch),
 		len(spec.CompetitiveLandscape),
 	)
+}
+
+func formatCUJDetail(spec specs.Spec) string {
+	if len(spec.CriticalUserJourneys) == 0 {
+		return "CUJ: none"
+	}
+	cuj := spec.CriticalUserJourneys[0]
+	label := cuj.ID
+	if cuj.Title != "" {
+		label += " " + cuj.Title
+	}
+	if cuj.Priority != "" {
+		label += " (" + cuj.Priority + ")"
+	}
+	return "CUJ: " + label
+}
+
+func formatResearchDetail(spec specs.Spec) string {
+	market := "none"
+	if len(spec.MarketResearch) > 0 {
+		market = spec.MarketResearch[0].ID
+		if spec.MarketResearch[0].Claim != "" {
+			market += " " + spec.MarketResearch[0].Claim
+		}
+	}
+	comp := "none"
+	if len(spec.CompetitiveLandscape) > 0 {
+		comp = spec.CompetitiveLandscape[0].ID
+		if spec.CompetitiveLandscape[0].Name != "" {
+			comp += " " + spec.CompetitiveLandscape[0].Name
+		}
+	}
+	return "Market: " + market + " | Competitive: " + comp
 }
 
 func joinColumns(left, right []string, leftWidth int) string {
