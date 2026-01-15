@@ -54,6 +54,11 @@ func ValidateCmd() *cobra.Command {
 				return fmt.Errorf("validation failed: %s", strings.Join(res.Errors, "; "))
 			}
 			if len(res.Warnings) > 0 {
+				if specs.ValidationMode(selected) == specs.ValidationSoft {
+					if err := specs.StoreValidationWarnings(path, res.Warnings); err != nil {
+						return err
+					}
+				}
 				for _, warning := range res.Warnings {
 					fmt.Fprintln(cmd.OutOrStdout(), "WARN:", warning)
 				}
