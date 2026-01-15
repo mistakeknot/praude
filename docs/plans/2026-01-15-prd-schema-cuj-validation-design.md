@@ -16,6 +16,7 @@ update Tandemonium's design doc:
 ## Storage
 - Specs: `.praude/specs/PRD-###.yaml`
 - Research artifacts: `.praude/research/PRD-###-<timestamp>.md`
+- Suggestions: `.praude/suggestions/PRD-###-<timestamp>.md`
 - Briefs: `.praude/briefs/PRD-###-<timestamp>.md`
 
 ## Schema Extensions (Graph-Linked)
@@ -51,6 +52,31 @@ Validation also ensures:
 - CUJ IDs are unique and referenced requirements exist
 - Evidence refs point to existing files
 - Priority values are valid
+- Market/competitive sections are optional (warnings only in both modes)
+
+## Guided Interview (TUI-only)
+Flow:
+1) Prompt to scan repo + docs (full repo scan with `.gitignore` exclusions)
+2) Draft PRD from scan
+3) Confirm draft, then interview starts
+4) Interview order: vision -> users -> problem -> requirements
+5) Auto-generate CUJs immediately after interview (auto priority)
+6) Auto-validate after interview
+7) Prompt to run research (optional; can run in background)
+
+## Research + Suggestions Pipeline
+- Research outputs written to `.praude/research/`
+- Every claim must include evidence refs
+- Research includes OSS project scan for learnings/bootstrapping/insights
+- Background research produces suggestions in `.praude/suggestions/`
+- Suggestions are reviewed per-section; accepted changes auto-apply + auto-commit
+
+## Default CUJ Behavior
+- Maintenance CUJ auto-generated for each PRD
+- Priority: low
+- Steps/success criteria auto-filled (minimal)
+- Tasks require primary CUJ, with optional secondary CUJs
+- CUJ IDs are scoped to the PRD (Tandemonium must scope by PRD ID)
 
 ## TUI/CLI Updates
 - New sections for CUJs, Market Research, Competitive Landscape

@@ -9,6 +9,13 @@
 - Keep changes small, testable, and committed frequently.
 - Default to ASCII-only edits unless the file already uses Unicode.
 
+## 2026-01-15 Direction Update (CUJs + Evidence Graph)
+- Latest design: `docs/plans/2026-01-15-prd-schema-cuj-validation-design.md`.
+- Latest plan: `docs/plans/2026-01-15-prd-schema-cuj-validation-implementation-plan.md`.
+- CUJ/market/competitive sections are now part of the core PRD schema.
+- Validation modes (hard/soft) must be supported.
+- Suggestions are stored under `.praude/suggestions/`.
+
 ## Repo Overview
 Praude is a TUI-first PM/specs CLI that generates, validates, and governs PRDs.
 It orchestrates external agents (Codex, Claude Code, opencode, droid) and stores
@@ -17,6 +24,7 @@ specs as YAML files in `.praude/specs/`.
 ## Key Paths and Data
 - `.praude/specs/` one YAML per PRD (source of truth).
 - `.praude/research/` market/competitive research outputs (timestamped).
+- `.praude/suggestions/` staged updates for review (timestamped).
 - `.praude/briefs/` agent briefs (timestamped; always written).
 - `.praude/config.toml` agent profiles (command + args).
 - `internal/specs/` schema, ID generation, validation, load/save.
