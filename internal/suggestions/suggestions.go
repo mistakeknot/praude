@@ -143,10 +143,22 @@ func parseSuggestion(raw []byte) Suggestion {
 	out := Suggestion{}
 	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
-		if strings.HasPrefix(line, "## Summary") {
-			if summary := firstQuoted(lines[i+2:]); summary != "" {
-				out.Summary = summary
-			}
+		if !strings.HasPrefix(line, "## ") {
+			continue
+		}
+		section := strings.TrimSpace(strings.TrimPrefix(line, "## "))
+		block := extractSuggestionBlock(lines, i+1)
+		switch section {
+		case "Summary":
+			out.Summary = parseSummaryBlock(block)
+		case "Requirements":
+			out.Requirements = parseStringListBlock(block)
+		case "Critical User Journeys":
+			out.CriticalUserJourneys = parseCUJBlock(block)
+		case "Market Research":
+			out.MarketResearch = parseMarketBlock(block)
+		case "Competitive Landscape":
+			out.CompetitiveLandscape = parseCompetitiveBlock(block)
 		}
 	}
 	return out
@@ -175,4 +187,101 @@ func betweenQuotes(line string) string {
 		return line[first+1 : last]
 	}
 	return ""
+}
+
+func extractSuggestionBlock(lines []string, start int) []string {
+	for i := start; i < len(lines); i++ {
+		trim := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(trim, "## ") {
+			return nil
+		}
+		if strings.HasPrefix(trim, "- suggestion:") {
+			block := []string{lines[i]}
+			for j := i + 1; j < len(lines); j++ {
+				next := strings.TrimSpace(lines[j])
+				if strings.HasPrefix(next, "## ") {
+					break
+				}
+				block = append(block, lines[j])
+			}
+			return block
+		}
+	}
+	return nil
+}
+
+func parseSummaryBlock(block []string) string {
+	if len(block) == 0 {
+		return ""
+	}
+	if inline := betweenQuotes(block[0]); inline != "" {
+		return inline
+	}
+	return firstQuoted(block[1:])
+}
+
+func parseStringListBlock(block []string) []string {
+	if len(block) == 0 {
+		return nil
+	}
+	if inline := betweenQuotes(block[0]); inline != "" {
+		return []string{inline}
+	}
+	var wrapper struct {
+		Items []string `yaml:"items"`
+	}
+	if !parseBlock(block[1:], &wrapper) {
+		return nil
+	}
+	return wrapper.Items
+}
+
+func parseCUJBlock(block []string) []specs.CriticalUserJourney {
+	var wrapper struct {
+		Items []specs.CriticalUserJourney `yaml:"items"`
+	}
+	if !parseBlock(block[1:], &wrapper) {
+		return nil
+	}
+	return wrapper.Items
+}
+
+func parseMarketBlock(block []string) []specs.MarketResearchItem {
+	var wrapper struct {
+		Items []specs.MarketResearchItem `yaml:"items"`
+	}
+	if !parseBlock(block[1:], &wrapper) {
+		return nil
+	}
+	return wrapper.Items
+}
+
+func parseCompetitiveBlock(block []string) []specs.CompetitiveLandscapeItem {
+	var wrapper struct {
+		Items []specs.CompetitiveLandscapeItem `yaml:"items"`
+	}
+	if !parseBlock(block[1:], &wrapper) {
+		return nil
+	}
+	return wrapper.Items
+}
+
+func parseBlock(lines []string, out interface{}) bool {
+	if len(lines) == 0 {
+		return false
+	}
+	var b strings.Builder
+	b.WriteString("items:\n")
+	for _, line := range lines {
+		trim := strings.TrimSpace(line)
+		if trim == "" {
+			continue
+		}
+		b.WriteString(line)
+		b.WriteString("\n")
+	}
+	if err := yaml.Unmarshal([]byte(b.String()), out); err != nil {
+		return false
+	}
+	return true
 }

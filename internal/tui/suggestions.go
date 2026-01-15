@@ -9,11 +9,16 @@ import (
 )
 
 type suggestionsState struct {
-	active bool
-	id     string
-	path   string
-	sugg   suggestions.Suggestion
-	err    string
+	active             bool
+	id                 string
+	path               string
+	sugg               suggestions.Suggestion
+	err                string
+	acceptSummary      bool
+	acceptRequirements bool
+	acceptCUJ          bool
+	acceptMarket       bool
+	acceptCompetitive  bool
 }
 
 func (m *Model) enterSuggestions() {
@@ -28,7 +33,17 @@ func (m *Model) enterSuggestions() {
 		m.mode = "suggestions"
 		return
 	}
-	m.suggestions = suggestionsState{active: true, id: id, path: path, sugg: sugg}
+	m.suggestions = suggestionsState{
+		active:             true,
+		id:                 id,
+		path:               path,
+		sugg:               sugg,
+		acceptSummary:      sugg.Summary != "",
+		acceptRequirements: len(sugg.Requirements) > 0,
+		acceptCUJ:          len(sugg.CriticalUserJourneys) > 0,
+		acceptMarket:       len(sugg.MarketResearch) > 0,
+		acceptCompetitive:  len(sugg.CompetitiveLandscape) > 0,
+	}
 	m.mode = "suggestions"
 }
 
@@ -37,7 +52,23 @@ func (m *Model) applySuggestions() {
 		return
 	}
 	specPath := filepath.Join(project.SpecsDir(m.root), m.suggestions.id+".yaml")
-	if err := suggestions.Apply(specPath, m.suggestions.sugg); err != nil {
+	selected := suggestions.Suggestion{}
+	if m.suggestions.acceptSummary {
+		selected.Summary = m.suggestions.sugg.Summary
+	}
+	if m.suggestions.acceptRequirements {
+		selected.Requirements = m.suggestions.sugg.Requirements
+	}
+	if m.suggestions.acceptCUJ {
+		selected.CriticalUserJourneys = m.suggestions.sugg.CriticalUserJourneys
+	}
+	if m.suggestions.acceptMarket {
+		selected.MarketResearch = m.suggestions.sugg.MarketResearch
+	}
+	if m.suggestions.acceptCompetitive {
+		selected.CompetitiveLandscape = m.suggestions.sugg.CompetitiveLandscape
+	}
+	if err := suggestions.Apply(specPath, selected); err != nil {
 		m.suggestions.err = err.Error()
 		return
 	}
@@ -54,9 +85,32 @@ func (m *Model) renderSuggestions() []string {
 		return lines
 	}
 	lines = append(lines, "Spec: "+m.suggestions.id)
-	if m.suggestions.sugg.Summary != "" {
-		lines = append(lines, "Summary suggestion: "+m.suggestions.sugg.Summary)
-	}
-	lines = append(lines, "[a] accept  [r] reject  [q] quit")
+	lines = append(lines, "1 Summary: "+toggleLabel(m.suggestions.acceptSummary, m.suggestions.sugg.Summary))
+	lines = append(lines, "2 Requirements: "+countToggle(m.suggestions.acceptRequirements, len(m.suggestions.sugg.Requirements)))
+	lines = append(lines, "3 CUJ: "+countToggle(m.suggestions.acceptCUJ, len(m.suggestions.sugg.CriticalUserJourneys)))
+	lines = append(lines, "4 Market: "+countToggle(m.suggestions.acceptMarket, len(m.suggestions.sugg.MarketResearch)))
+	lines = append(lines, "5 Competitive: "+countToggle(m.suggestions.acceptCompetitive, len(m.suggestions.sugg.CompetitiveLandscape)))
+	lines = append(lines, "[1-5] toggle  [a] accept  [r] reject  [q] quit")
 	return lines
+}
+
+func toggleLabel(accepted bool, summary string) string {
+	if summary == "" {
+		return "[none]"
+	}
+	if accepted {
+		return "[accept] " + summary
+	}
+	return "[skip] " + summary
+}
+
+func countToggle(accepted bool, count int) string {
+	if count == 0 {
+		return "[none]"
+	}
+	label := "[skip]"
+	if accepted {
+		label = "[accept]"
+	}
+	return label + " " + itoa(count)
 }

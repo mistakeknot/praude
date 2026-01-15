@@ -84,3 +84,25 @@ func TestLoadLatestSuggestionParsesSummary(t *testing.T) {
 		t.Fatalf("expected summary parsed")
 	}
 }
+
+func TestLoadLatestSuggestionParsesRequirementsAndCUJ(t *testing.T) {
+	dir := t.TempDir()
+	path, err := Create(dir, "PRD-001", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = path
+	sugg, latest, err := LoadLatest(dir, "PRD-001")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if latest == "" {
+		t.Fatalf("expected latest path")
+	}
+	if len(sugg.Requirements) == 0 {
+		t.Fatalf("expected requirements parsed")
+	}
+	if len(sugg.CriticalUserJourneys) == 0 {
+		t.Fatalf("expected cuj parsed")
+	}
+}

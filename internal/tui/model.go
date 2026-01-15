@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -62,6 +63,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.mode = "list"
 			case "r":
 				m.mode = "list"
+			case "1":
+				m.suggestions.acceptSummary = !m.suggestions.acceptSummary
+			case "2":
+				m.suggestions.acceptRequirements = !m.suggestions.acceptRequirements
+			case "3":
+				m.suggestions.acceptCUJ = !m.suggestions.acceptCUJ
+			case "4":
+				m.suggestions.acceptMarket = !m.suggestions.acceptMarket
+			case "5":
+				m.suggestions.acceptCompetitive = !m.suggestions.acceptCompetitive
 			}
 			return m, nil
 		}
@@ -141,6 +152,9 @@ func (m Model) renderDetail() []string {
 	lines = append(lines, "ID: "+sel.ID)
 	lines = append(lines, "Title: "+sel.Title)
 	lines = append(lines, "Summary: "+sel.Summary)
+	if spec, err := specs.LoadSpec(sel.Path); err == nil {
+		lines = append(lines, formatCompleteness(spec))
+	}
 	return lines
 }
 
@@ -153,6 +167,21 @@ func (m *Model) reloadSummaries() {
 	if m.selected >= len(m.summaries) {
 		m.selected = 0
 	}
+}
+
+func formatCompleteness(spec specs.Spec) string {
+	summary := "no"
+	if strings.TrimSpace(spec.Summary) != "" {
+		summary = "yes"
+	}
+	return fmt.Sprintf(
+		"Completeness: summary %s | req %d | cuj %d | market %d | competitive %d",
+		summary,
+		len(spec.Requirements),
+		len(spec.CriticalUserJourneys),
+		len(spec.MarketResearch),
+		len(spec.CompetitiveLandscape),
+	)
 }
 
 func joinColumns(left, right []string, leftWidth int) string {

@@ -15,6 +15,18 @@ type Summary struct {
 	Path    string
 }
 
+func LoadSpec(path string) (Spec, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return Spec{}, err
+	}
+	var doc Spec
+	if err := yaml.Unmarshal(raw, &doc); err != nil {
+		return Spec{}, err
+	}
+	return doc, nil
+}
+
 func LoadSummaries(dir string) ([]Summary, []string) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
