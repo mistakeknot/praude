@@ -35,6 +35,47 @@ files_to_modify:
   - action: "create"
     path: "path/to/file"
     description: "Why this file"
+critical_user_journeys:
+  - id: "CUJ-001"
+    title: "Primary Journey"
+    priority: 1
+    steps:
+      - "Step one"
+    success_criteria:
+      - "Success outcome"
+    linked_requirements:
+      - "req-1"
+  - id: "CUJ-002"
+    title: "Maintenance"
+    priority: 99
+    steps:
+      - "Routine upkeep"
+    success_criteria:
+      - "System remains stable"
+    linked_requirements:
+      - "req-1"
+market_research:
+  - id: "MR-001"
+    claim: "Market is growing"
+    evidence_refs:
+      - path: ".praude/research/PRD-001-YYYYMMDD-HHMMSS.md"
+        anchor: "section-1"
+        note: "Source quote"
+    confidence: "medium"
+    date: "2026-01-15"
+competitive_landscape:
+  - id: "COMP-001"
+    name: "Competitor"
+    positioning: "Low cost"
+    strengths:
+      - "Speed"
+    weaknesses:
+      - "Reliability"
+    risk: "Medium"
+    evidence_refs:
+      - path: ".praude/research/PRD-001-YYYYMMDD-HHMMSS.md"
+        anchor: "section-2"
+        note: "Source quote"
 research:
   - ".praude/research/PRD-001-YYYYMMDD-HHMMSS.md"
 complexity: "medium"

@@ -26,3 +26,28 @@ func TestCreateTemplateSpec(t *testing.T) {
 		t.Fatalf("expected full schema")
 	}
 }
+
+func TestTemplateIncludesCUJsAndEvidenceSections(t *testing.T) {
+	root := t.TempDir()
+	specsDir := filepath.Join(root, ".praude", "specs")
+	if err := os.MkdirAll(specsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path, err := CreateTemplate(specsDir, time.Date(2026, 1, 14, 0, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := os.ReadFile(path)
+	if !bytes.Contains(raw, []byte("critical_user_journeys:")) {
+		t.Fatalf("expected cuj section")
+	}
+	if !bytes.Contains(raw, []byte("Maintenance")) {
+		t.Fatalf("expected maintenance cuj")
+	}
+	if !bytes.Contains(raw, []byte("market_research:")) {
+		t.Fatalf("expected market research section")
+	}
+	if !bytes.Contains(raw, []byte("competitive_landscape:")) {
+		t.Fatalf("expected competitive landscape section")
+	}
+}
