@@ -50,4 +50,10 @@ func TestTemplateIncludesCUJsAndEvidenceSections(t *testing.T) {
 	if !bytes.Contains(raw, []byte("competitive_landscape:")) {
 		t.Fatalf("expected competitive landscape section")
 	}
+	if !bytes.Contains(raw, []byte("priority: \"high\"")) || !bytes.Contains(raw, []byte("priority: \"low\"")) {
+		t.Fatalf("expected cuj priorities as strings")
+	}
+	if !bytes.Contains(raw, []byte("REQ-001")) {
+		t.Fatalf("expected requirement ids in template")
+	}
 }

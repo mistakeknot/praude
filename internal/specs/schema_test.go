@@ -13,7 +13,7 @@ summary: "Summary"
 critical_user_journeys:
   - id: "CUJ-001"
     title: "Signup"
-    priority: 1
+    priority: "high"
     steps:
       - "Open page"
     success_criteria:

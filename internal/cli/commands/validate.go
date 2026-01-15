@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mistakeknot/praude/internal/config"
 	"github.com/mistakeknot/praude/internal/project"
@@ -42,8 +43,21 @@ func ValidateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := specs.Validate(raw); err != nil {
+			res, err := specs.Validate(raw, specs.ValidationOptions{
+				Mode: specs.ValidationMode(selected),
+				Root: root,
+			})
+			if err != nil {
 				return err
+			}
+			if len(res.Errors) > 0 {
+				return fmt.Errorf("validation failed: %s", strings.Join(res.Errors, "; "))
+			}
+			if len(res.Warnings) > 0 {
+				for _, warning := range res.Warnings {
+					fmt.Fprintln(cmd.OutOrStdout(), "WARN:", warning)
+				}
+				return nil
 			}
 			fmt.Fprintln(cmd.OutOrStdout(), "OK")
 			return nil

@@ -30,11 +30,11 @@ type EvidenceRef struct {
 }
 
 type CriticalUserJourney struct {
-	ID                string   `yaml:"id"`
-	Title             string   `yaml:"title"`
-	Priority          int      `yaml:"priority"`
-	Steps             []string `yaml:"steps"`
-	SuccessCriteria   []string `yaml:"success_criteria"`
+	ID                 string   `yaml:"id"`
+	Title              string   `yaml:"title"`
+	Priority           string   `yaml:"priority"`
+	Steps              []string `yaml:"steps"`
+	SuccessCriteria    []string `yaml:"success_criteria"`
 	LinkedRequirements []string `yaml:"linked_requirements"`
 }
 
@@ -57,20 +57,20 @@ type CompetitiveLandscapeItem struct {
 }
 
 type Spec struct {
-	ID               string                `yaml:"id"`
-	Title            string                `yaml:"title"`
-	CreatedAt        string                `yaml:"created_at"`
-	StrategicContext StrategicContext      `yaml:"strategic_context"`
-	UserStory        UserStory             `yaml:"user_story"`
-	Summary          string                `yaml:"summary"`
-	Requirements     []string              `yaml:"requirements"`
-	Acceptance       []AcceptanceCriterion `yaml:"acceptance_criteria"`
-	FilesToModify    []FileChange          `yaml:"files_to_modify"`
-	Research         []string              `yaml:"research"`
-	CriticalUserJourneys []CriticalUserJourney `yaml:"critical_user_journeys"`
-	MarketResearch       []MarketResearchItem `yaml:"market_research"`
+	ID                   string                     `yaml:"id"`
+	Title                string                     `yaml:"title"`
+	CreatedAt            string                     `yaml:"created_at"`
+	StrategicContext     StrategicContext           `yaml:"strategic_context"`
+	UserStory            UserStory                  `yaml:"user_story"`
+	Summary              string                     `yaml:"summary"`
+	Requirements         []string                   `yaml:"requirements"`
+	Acceptance           []AcceptanceCriterion      `yaml:"acceptance_criteria"`
+	FilesToModify        []FileChange               `yaml:"files_to_modify"`
+	Research             []string                   `yaml:"research"`
+	CriticalUserJourneys []CriticalUserJourney      `yaml:"critical_user_journeys"`
+	MarketResearch       []MarketResearchItem       `yaml:"market_research"`
 	CompetitiveLandscape []CompetitiveLandscapeItem `yaml:"competitive_landscape"`
-	Complexity       string                `yaml:"complexity"`
-	EstimatedMinutes int                   `yaml:"estimated_minutes"`
-	Priority         int                   `yaml:"priority"`
+	Complexity           string                     `yaml:"complexity"`
+	EstimatedMinutes     int                        `yaml:"estimated_minutes"`
+	Priority             int                        `yaml:"priority"`
 }

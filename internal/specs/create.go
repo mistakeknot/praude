@@ -27,7 +27,7 @@ user_story:
 summary: |
   One paragraph describing what to build and why.
 requirements:
-  - "Requirement one"
+  - "REQ-001: Requirement one"
 acceptance_criteria:
   - id: "ac-1"
     description: "Acceptance criterion one"
@@ -38,22 +38,22 @@ files_to_modify:
 critical_user_journeys:
   - id: "CUJ-001"
     title: "Primary Journey"
-    priority: 1
+    priority: "high"
     steps:
       - "Step one"
     success_criteria:
       - "Success outcome"
     linked_requirements:
-      - "req-1"
+      - "REQ-001"
   - id: "CUJ-002"
     title: "Maintenance"
-    priority: 99
+    priority: "low"
     steps:
       - "Routine upkeep"
     success_criteria:
       - "System remains stable"
     linked_requirements:
-      - "req-1"
+      - "REQ-001"
 market_research:
   - id: "MR-001"
     claim: "Market is growing"
