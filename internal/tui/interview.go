@@ -147,7 +147,10 @@ func renderScanSummary(res scan.Result) string {
 }
 
 func (m Model) renderInterview() []string {
-	lines := []string{"Guided interview"}
+	lines := []string{
+		"Guided interview",
+		"PM-focused agent: Codex CLI / Claude Code",
+	}
 	switch m.interview.step {
 	case stepScanPrompt:
 		lines = append(lines, "Scan repo now? (y/n)")

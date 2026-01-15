@@ -54,6 +54,16 @@ func TestInterviewCreatesSpecWithWarnings(t *testing.T) {
 	}
 }
 
+func TestInterviewMentionsPMFocusedAgent(t *testing.T) {
+	m := NewModel()
+	m.mode = "interview"
+	m.interview = startInterview(m.root)
+	out := m.View()
+	if !strings.Contains(out, "PM-focused") {
+		t.Fatalf("expected PM-focused agent hint")
+	}
+}
+
 func pressKey(m Model, key string) Model {
 	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(key)}
 	if key == "enter" {
