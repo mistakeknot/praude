@@ -58,3 +58,29 @@ func TestApplySuggestionUpdatesSummary(t *testing.T) {
 		t.Fatalf("expected no errors")
 	}
 }
+
+func TestLoadLatestSuggestionParsesSummary(t *testing.T) {
+	dir := t.TempDir()
+	path, err := Create(dir, "PRD-001", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	updated := strings.Replace(string(raw), "suggestion: \"\"", "suggestion: \"Updated summary\"", 1)
+	if err := os.WriteFile(path, []byte(updated), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	sugg, latest, err := LoadLatest(dir, "PRD-001")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if latest == "" {
+		t.Fatalf("expected latest path")
+	}
+	if sugg.Summary != "Updated summary" {
+		t.Fatalf("expected summary parsed")
+	}
+}

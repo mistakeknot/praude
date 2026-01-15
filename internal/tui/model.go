@@ -10,13 +10,14 @@ import (
 )
 
 type Model struct {
-	summaries []specs.Summary
-	selected  int
-	err       string
-	root      string
-	mode      string
-	interview interviewState
-	input     string
+	summaries   []specs.Summary
+	selected    int
+	err         string
+	root        string
+	mode        string
+	interview   interviewState
+	suggestions suggestionsState
+	input       string
 }
 
 func NewModel() Model {
@@ -52,6 +53,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
+		if m.mode == "suggestions" {
+			switch key {
+			case "q", "ctrl+c":
+				m.mode = "list"
+			case "a":
+				m.applySuggestions()
+				m.mode = "list"
+			case "r":
+				m.mode = "list"
+			}
+			return m, nil
+		}
 		switch key {
 		case "q", "ctrl+c":
 			return m, tea.Quit
@@ -60,6 +73,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.mode = "interview"
 				m.interview = startInterview(m.root)
 				m.input = ""
+			}
+		case "s":
+			if m.err == "" {
+				m.enterSuggestions()
 			}
 		case "j", "down":
 			if m.selected < len(m.summaries)-1 {
@@ -78,6 +95,11 @@ func (m Model) View() string {
 	if m.mode == "interview" {
 		left := []string{"INTERVIEW"}
 		right := m.renderInterview()
+		return joinColumns(left, right, 42)
+	}
+	if m.mode == "suggestions" {
+		left := []string{"SUGGESTIONS"}
+		right := m.renderSuggestions()
 		return joinColumns(left, right, 42)
 	}
 	left := m.renderList()

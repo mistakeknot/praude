@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/mistakeknot/praude/internal/specs"
@@ -16,6 +17,36 @@ type Suggestion struct {
 	CriticalUserJourneys []specs.CriticalUserJourney
 	MarketResearch       []specs.MarketResearchItem
 	CompetitiveLandscape []specs.CompetitiveLandscapeItem
+}
+
+func LoadLatest(dir, id string) (Suggestion, string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return Suggestion{}, "", err
+	}
+	var latestPath string
+	var latestName string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasPrefix(name, id+"-") || !strings.HasSuffix(name, ".md") {
+			continue
+		}
+		if name > latestName {
+			latestName = name
+			latestPath = filepath.Join(dir, name)
+		}
+	}
+	if latestPath == "" {
+		return Suggestion{}, "", fmt.Errorf("no suggestions for %s", id)
+	}
+	raw, err := os.ReadFile(latestPath)
+	if err != nil {
+		return Suggestion{}, "", err
+	}
+	return parseSuggestion(raw), latestPath, nil
 }
 
 func Create(dir, id string, now time.Time) (string, error) {
@@ -105,4 +136,43 @@ func Apply(path string, suggestion Suggestion) error {
 		return err
 	}
 	return os.WriteFile(path, updated, 0o644)
+}
+
+func parseSuggestion(raw []byte) Suggestion {
+	lines := strings.Split(string(raw), "\n")
+	out := Suggestion{}
+	for i := 0; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(line, "## Summary") {
+			if summary := firstQuoted(lines[i+2:]); summary != "" {
+				out.Summary = summary
+			}
+		}
+	}
+	return out
+}
+
+func firstQuoted(lines []string) string {
+	for _, line := range lines {
+		trim := strings.TrimSpace(line)
+		if strings.HasPrefix(trim, "- suggestion:") && strings.Contains(trim, "\"") {
+			return betweenQuotes(trim)
+		}
+		if strings.HasPrefix(trim, "- suggestion:") {
+			continue
+		}
+		if strings.HasPrefix(trim, "- ") && strings.Contains(trim, "\"") {
+			return betweenQuotes(trim)
+		}
+	}
+	return ""
+}
+
+func betweenQuotes(line string) string {
+	first := strings.Index(line, "\"")
+	last := strings.LastIndex(line, "\"")
+	if first >= 0 && last > first {
+		return line[first+1 : last]
+	}
+	return ""
 }
