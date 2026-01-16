@@ -56,6 +56,10 @@ type CompetitiveLandscapeItem struct {
 	EvidenceRefs []EvidenceRef `yaml:"evidence_refs"`
 }
 
+type Metadata struct {
+	ValidationWarnings []string `yaml:"validation_warnings"`
+}
+
 type Spec struct {
 	ID                   string                     `yaml:"id"`
 	Title                string                     `yaml:"title"`
@@ -70,6 +74,7 @@ type Spec struct {
 	CriticalUserJourneys []CriticalUserJourney      `yaml:"critical_user_journeys"`
 	MarketResearch       []MarketResearchItem       `yaml:"market_research"`
 	CompetitiveLandscape []CompetitiveLandscapeItem `yaml:"competitive_landscape"`
+	Metadata             Metadata                   `yaml:"metadata"`
 	Complexity           string                     `yaml:"complexity"`
 	EstimatedMinutes     int                        `yaml:"estimated_minutes"`
 	Priority             int                        `yaml:"priority"`

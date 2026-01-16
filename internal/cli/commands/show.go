@@ -34,6 +34,13 @@ func ShowCmd() *cobra.Command {
 			fmt.Fprintln(cmd.OutOrStdout(), string(raw))
 			fmt.Fprintln(cmd.OutOrStdout(), "")
 			fmt.Fprintln(cmd.OutOrStdout(), summarizeSpec(spec))
+			if len(spec.Metadata.ValidationWarnings) > 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "")
+				fmt.Fprintln(cmd.OutOrStdout(), "Validation warnings:")
+				for _, warning := range spec.Metadata.ValidationWarnings {
+					fmt.Fprintln(cmd.OutOrStdout(), "- "+warning)
+				}
+			}
 			return nil
 		},
 	}

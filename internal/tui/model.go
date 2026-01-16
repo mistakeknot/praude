@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/mistakeknot/praude/internal/agents"
+	"github.com/mistakeknot/praude/internal/config"
 	"github.com/mistakeknot/praude/internal/project"
+	"github.com/mistakeknot/praude/internal/research"
 	"github.com/mistakeknot/praude/internal/specs"
+	"github.com/mistakeknot/praude/internal/suggestions"
 )
 
 type Model struct {
@@ -16,6 +21,7 @@ type Model struct {
 	err         string
 	root        string
 	mode        string
+	status      string
 	interview   interviewState
 	suggestions suggestionsState
 	input       string
@@ -84,6 +90,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.mode = "interview"
 				m.interview = startInterview(m.root)
 				m.input = ""
+			}
+		case "r":
+			if m.err == "" {
+				m.runResearchForSelected()
+			}
+		case "p":
+			if m.err == "" {
+				m.runSuggestionsForSelected()
 			}
 		case "s":
 			if m.err == "" {
@@ -156,6 +170,10 @@ func (m Model) renderDetail() []string {
 		lines = append(lines, formatCompleteness(spec))
 		lines = append(lines, formatCUJDetail(spec))
 		lines = append(lines, formatResearchDetail(spec))
+		lines = append(lines, formatWarnings(spec)...)
+	}
+	if strings.TrimSpace(m.status) != "" {
+		lines = append(lines, "Last action: "+m.status)
 	}
 	return lines
 }
@@ -169,6 +187,94 @@ func (m *Model) reloadSummaries() {
 	if m.selected >= len(m.summaries) {
 		m.selected = 0
 	}
+}
+
+func (m *Model) runResearchForSelected() {
+	if len(m.summaries) == 0 {
+		m.status = "No PRD selected"
+		return
+	}
+	id := m.summaries[m.selected].ID
+	now := time.Now()
+	researchDir := project.ResearchDir(m.root)
+	if err := os.MkdirAll(researchDir, 0o755); err != nil {
+		m.status = "Research failed: " + err.Error()
+		return
+	}
+	researchPath, err := research.Create(researchDir, id, now)
+	if err != nil {
+		m.status = "Research failed: " + err.Error()
+		return
+	}
+	briefPath, err := writeResearchBrief(m.root, id, researchPath, now)
+	if err != nil {
+		m.status = "Research failed: " + err.Error()
+		return
+	}
+	cfg, err := config.LoadFromRoot(m.root)
+	if err != nil {
+		m.status = "Research failed: " + err.Error()
+		return
+	}
+	agentName := defaultAgentName(cfg)
+	profile, err := agents.Resolve(agentProfiles(cfg), agentName)
+	if err != nil {
+		m.status = "Research failed: " + err.Error()
+		return
+	}
+	launcher := launchAgent
+	if isClaudeProfile(agentName, profile) {
+		launcher = launchSubagent
+	}
+	if err := launcher(profile, briefPath); err != nil {
+		m.status = "agent not found; brief at " + briefPath
+		return
+	}
+	m.status = "launched research agent " + agentName
+}
+
+func (m *Model) runSuggestionsForSelected() {
+	if len(m.summaries) == 0 {
+		m.status = "No PRD selected"
+		return
+	}
+	id := m.summaries[m.selected].ID
+	now := time.Now()
+	suggDir := project.SuggestionsDir(m.root)
+	if err := os.MkdirAll(suggDir, 0o755); err != nil {
+		m.status = "Suggestions failed: " + err.Error()
+		return
+	}
+	suggPath, err := suggestions.Create(suggDir, id, now)
+	if err != nil {
+		m.status = "Suggestions failed: " + err.Error()
+		return
+	}
+	briefPath, err := writeSuggestionBrief(m.root, id, suggPath, now)
+	if err != nil {
+		m.status = "Suggestions failed: " + err.Error()
+		return
+	}
+	cfg, err := config.LoadFromRoot(m.root)
+	if err != nil {
+		m.status = "Suggestions failed: " + err.Error()
+		return
+	}
+	agentName := defaultAgentName(cfg)
+	profile, err := agents.Resolve(agentProfiles(cfg), agentName)
+	if err != nil {
+		m.status = "Suggestions failed: " + err.Error()
+		return
+	}
+	launcher := launchAgent
+	if isClaudeProfile(agentName, profile) {
+		launcher = launchSubagent
+	}
+	if err := launcher(profile, briefPath); err != nil {
+		m.status = "agent not found; brief at " + briefPath
+		return
+	}
+	m.status = "launched suggestions agent " + agentName
 }
 
 func formatCompleteness(spec specs.Spec) string {
@@ -217,6 +323,17 @@ func formatResearchDetail(spec specs.Spec) string {
 		}
 	}
 	return "Market: " + market + " | Competitive: " + comp
+}
+
+func formatWarnings(spec specs.Spec) []string {
+	if len(spec.Metadata.ValidationWarnings) == 0 {
+		return nil
+	}
+	lines := []string{"Validation warnings:"}
+	for _, warning := range spec.Metadata.ValidationWarnings {
+		lines = append(lines, "- "+warning)
+	}
+	return lines
 }
 
 func joinColumns(left, right []string, leftWidth int) string {
