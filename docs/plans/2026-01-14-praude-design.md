@@ -29,14 +29,11 @@ Default `praude` launches a two-pane TUI:
 Top bar shows project + filter + agent profile; bottom bar shows hotkeys.
 
 Core actions:
-- `n` new spec
-- `r` research
-- `g` generate PRD
-- `v` validate
-- `a` approve / lock
-- `d` drift check
-- `x` export
-- `i` import
+- `g` guided interview (create PRD)
+- `r` create research artifact + launch agent
+- `p` create suggestions artifact + launch agent
+- `s` review/apply suggestions
+- `j`/`k` navigate
 - `q` quit
 
 ## Agent Orchestration
@@ -62,15 +59,15 @@ All spec writes (create/update) auto-commit with messages like:
 ## CLI Surface
 TUI-first, with CLI parity for scripting:
 - `praude init`
-- `praude new`
 - `praude list`
 - `praude show <id>`
-- `praude validate <id|all>`
-- `praude research <id>`
-- `praude generate <id>`
-- `praude run <id> --agent=<profile>`
-- `praude export`
-- `praude import <file>`
+- `praude interview`
+- `praude validate <id> --mode=hard|soft`
+- `praude research <id> --agent=<profile>`
+- `praude suggest <id> --agent=<profile>`
+- `praude suggestions review <id>`
+- `praude suggestions apply <id> [--all]`
+- `praude run <brief> --agent=<profile>`
 
 ## Testing
 Unit tests cover ID generation, spec validation, brief composition, drift

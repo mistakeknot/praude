@@ -8,6 +8,22 @@ competitive landscape sections, and hard/soft validation modes. Maintain TUI
 and CLI parity. Keep schema in sync with Tandemonium. Add guided interview flow
 and research/suggestions pipeline.
 
+## Implementation Checklist (Owners)
+- [ ] (Praude) Extend PRD schema types (CUJs, market, competitive, evidence refs)
+- [ ] (Praude) Add maintenance CUJ defaults to templates
+- [ ] (Praude) Add validation_mode config + CLI flag
+- [ ] (Praude) Implement hard/soft validation rules and warnings metadata
+- [ ] (Praude) Guided interview flow with repo scan + draft confirmation
+- [ ] (Praude) CUJ auto-generation + priority assignment after interview
+- [ ] (Praude) Auto-validate after interview
+- [ ] (Praude) Research output with evidence refs + OSS scan
+- [ ] (Praude) Suggestions pipeline in `.praude/suggestions/` (per-section review)
+- [ ] (Praude) Spawn agents/subagents for research + suggestions (Claude Code profiles)
+- [ ] (Praude) Add CLI `praude suggest <id> --agent=<profile>`
+- [ ] (Praude) Show validation warnings in CLI show + TUI detail
+- [ ] (Praude) Drift hash includes CUJ + evidence sections
+- [ ] (Praude) Tests for schema, validation, and TUI/CLI updates
+
 ## Phase 1: Schema + Types
 1) Extend PRD schema types
 - Files: `internal/specs/` (schema + model structs)
@@ -53,21 +69,27 @@ and research/suggestions pipeline.
 - Write to `.praude/research/PRD-###-<timestamp>.md`
 - Require evidence refs for all claims
 - Include OSS project scan section
+- If profile is Claude Code, spawn subagent for research
 
 9) Suggestions pipeline
 - Suggestions stored in `.praude/suggestions/PRD-###-<timestamp>.md`
 - Review per-section with accept/reject
 - Accept applies changes + auto-commit
+- Add CLI `praude suggest <id> --agent=<profile>`
+- Support agent-generated suggestions (Claude Code subagent)
 
 ## Phase 5: TUI + CLI Surface
 10) TUI sections
 - Add CUJ, Market Research, Competitive Landscape
 - Completeness indicators
 - Suggestion review workflow
+- Surface validation warnings in detail panel
 
 11) CLI parity
 - `praude show` includes new sections
 - `praude validate` supports mode switch
+- `praude suggest` command
+- `praude show` should include validation warnings (metadata)
 
 ## Phase 6: Drift + Hashing
 12) Extend drift hash inputs

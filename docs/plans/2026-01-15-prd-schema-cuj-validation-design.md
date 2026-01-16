@@ -68,6 +68,8 @@ Flow:
 - Research outputs written to `.praude/research/`
 - Every claim must include evidence refs
 - Research includes OSS project scan for learnings/bootstrapping/insights
+- Claude Code profiles spawn subagents to run research and suggestions
+- Suggestions can be created via both TUI and CLI
 - Background research produces suggestions in `.praude/suggestions/`
 - Suggestions are reviewed per-section; accepted changes auto-apply + auto-commit
 
@@ -83,6 +85,13 @@ Flow:
 - Completeness indicators per section
 - Validation output shows errors vs warnings (mode-aware)
 - CLI parity for validation: `praude validate <id> --mode=hard|soft`
+- CLI parity for suggestions: `praude suggest <id> --agent=<profile>`
+- CLI interview: `praude interview`
+- CLI suggestions review/apply: `praude suggestions review <id>` and `praude suggestions apply <id> [--all]`
+- CLI show should surface validation warnings stored in metadata
+- TUI detail view should surface validation warnings
+- TUI hotkeys: `g` interview, `r` research + launch, `p` suggestions + launch, `s` review/apply suggestions
+- TUI detail shows last action status for launches/errors
 
 ## Drift Control
 - Spec hash includes new CUJ and evidence sections
