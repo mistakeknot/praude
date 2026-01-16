@@ -11,16 +11,16 @@ import (
 	"github.com/mistakeknot/praude/internal/brief"
 	"github.com/mistakeknot/praude/internal/config"
 	"github.com/mistakeknot/praude/internal/project"
-	"github.com/mistakeknot/praude/internal/research"
 	"github.com/mistakeknot/praude/internal/specs"
+	"github.com/mistakeknot/praude/internal/suggestions"
 	"github.com/spf13/cobra"
 )
 
-func ResearchCmd() *cobra.Command {
+func SuggestCmd() *cobra.Command {
 	var agent string
 	cmd := &cobra.Command{
-		Use:   "research <id>",
-		Short: "Create a research artifact for a PRD",
+		Use:   "suggest <id>",
+		Short: "Create a suggestions artifact for a PRD",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root, err := os.Getwd()
@@ -37,19 +37,19 @@ func ResearchCmd() *cobra.Command {
 			}
 			id := args[0]
 			now := time.Now()
-			researchDir := project.ResearchDir(root)
-			if err := os.MkdirAll(researchDir, 0o755); err != nil {
+			suggDir := project.SuggestionsDir(root)
+			if err := os.MkdirAll(suggDir, 0o755); err != nil {
 				return err
 			}
-			path, err := research.Create(researchDir, id, now)
+			suggPath, err := suggestions.Create(suggDir, id, now)
 			if err != nil {
 				return err
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), filepath.Base(path))
-			briefPath, err := writeResearchBrief(root, id, path, now)
+			briefPath, err := writeSuggestionBrief(root, id, suggPath, now)
 			if err != nil {
 				return err
 			}
+			fmt.Fprintln(cmd.OutOrStdout(), filepath.Base(suggPath))
 			launcher := launchAgent
 			if isClaudeProfile(agent, profile) {
 				launcher = launchSubagent
@@ -65,7 +65,25 @@ func ResearchCmd() *cobra.Command {
 	return cmd
 }
 
-func writeResearchBrief(root, id, researchPath string, now time.Time) (string, error) {
+var launchAgent = agents.Launch
+var launchSubagent = agents.LaunchSubagent
+
+func isClaudeProfile(name string, profile agents.Profile) bool {
+	if strings.EqualFold(name, "claude") {
+		return true
+	}
+	return strings.Contains(strings.ToLower(profile.Command), "claude")
+}
+
+func agentProfiles(cfg config.Config) map[string]agents.Profile {
+	out := make(map[string]agents.Profile)
+	for name, profile := range cfg.Agents {
+		out[name] = agents.Profile{Command: profile.Command, Args: profile.Args}
+	}
+	return out
+}
+
+func writeSuggestionBrief(root, id, suggPath string, now time.Time) (string, error) {
 	briefsDir := project.BriefsDir(root)
 	if err := os.MkdirAll(briefsDir, 0o755); err != nil {
 		return "", err
@@ -77,32 +95,33 @@ func writeResearchBrief(root, id, researchPath string, now time.Time) (string, e
 	if err != nil {
 		return "", err
 	}
-	acceptance := []string{}
-	for _, item := range spec.Acceptance {
-		if strings.TrimSpace(item.Description) != "" {
-			acceptance = append(acceptance, item.Description)
-		}
-	}
-	content := buildResearchBrief(spec, researchPath, acceptance)
+	content := buildSuggestionBrief(spec, suggPath)
 	if err := os.WriteFile(briefPath, []byte(content), 0o644); err != nil {
 		return "", err
 	}
 	return briefPath, nil
 }
 
-func buildResearchBrief(spec specs.Spec, researchPath string, acceptance []string) string {
+func buildSuggestionBrief(spec specs.Spec, suggPath string) string {
+	acceptance := []string{}
+	for _, item := range spec.Acceptance {
+		if strings.TrimSpace(item.Description) != "" {
+			acceptance = append(acceptance, item.Description)
+		}
+	}
 	base := brief.Compose(brief.Input{
-		ID:            spec.ID,
-		Title:         spec.Title,
-		Summary:       spec.Summary,
-		Requirements:  spec.Requirements,
-		Acceptance:    acceptance,
+		ID:           spec.ID,
+		Title:        spec.Title,
+		Summary:      spec.Summary,
+		Requirements: spec.Requirements,
+		Acceptance:   acceptance,
 		ResearchFiles: spec.Research,
 	})
-	instructions := "\n\nInstructions:\n" +
-		"- Fill in market research and competitive landscape sections.\n" +
-		"- Include an OSS project scan with evidence refs.\n" +
-		"- Use evidence refs for all claims.\n" +
-		"- Write results into the research template at:\n  " + researchPath + "\n"
+	instructions := `\n\nInstructions:
+- Create per-section suggestions for Summary, Requirements, CUJs, Market Research, Competitive Landscape.
+- Use evidence refs for all research claims.
+- Write results into the suggestions template at:
+  ` + suggPath + `
+`
 	return base + instructions
 }

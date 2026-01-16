@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/mistakeknot/praude/internal/agents"
+	"github.com/mistakeknot/praude/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -15,12 +16,24 @@ func RunCmd() *cobra.Command {
 		Short: "Run agent with brief",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			briefPath := args[0]
-			profile, err := agents.Resolve(map[string]agents.Profile{}, agent)
+			root, err := os.Getwd()
 			if err != nil {
 				return err
 			}
-			if err := agents.Launch(profile, briefPath); err != nil {
+			cfg, err := config.LoadFromRoot(root)
+			if err != nil {
+				return err
+			}
+			briefPath := args[0]
+			profile, err := agents.Resolve(agentProfiles(cfg), agent)
+			if err != nil {
+				return err
+			}
+			launcher := launchAgent
+			if isClaudeProfile(agent, profile) {
+				launcher = launchSubagent
+			}
+			if err := launcher(profile, briefPath); err != nil {
 				fmt.Fprintf(cmd.OutOrStdout(), "agent not found; brief at %s\n", briefPath)
 				return nil
 			}
