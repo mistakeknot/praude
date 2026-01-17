@@ -22,6 +22,7 @@ type Model struct {
 	root        string
 	mode        string
 	status      string
+	router      Router
 	interview   interviewState
 	suggestions suggestionsState
 	input       string
@@ -33,10 +34,10 @@ func NewModel() Model {
 		return Model{err: err.Error(), mode: "list"}
 	}
 	if _, err := os.Stat(project.RootDir(cwd)); err != nil {
-		return Model{err: "Not initialized", root: cwd, mode: "list"}
+		return Model{err: "Not initialized", root: cwd, mode: "list", router: Router{active: "list"}}
 	}
 	list, _ := specs.LoadSummaries(project.SpecsDir(cwd))
-	return Model{summaries: list, root: cwd, mode: "list"}
+	return Model{summaries: list, root: cwd, mode: "list", router: Router{active: "list"}}
 }
 
 func (m Model) Init() tea.Cmd { return nil }
