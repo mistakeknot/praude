@@ -118,19 +118,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	title := "LIST"
+	focus := "LIST"
+	var body string
 	if m.mode == "interview" {
+		title = "INTERVIEW"
 		left := []string{"INTERVIEW"}
 		right := m.renderInterview()
-		return joinColumns(left, right, 42)
-	}
-	if m.mode == "suggestions" {
+		body = joinColumns(left, right, 42)
+	} else if m.mode == "suggestions" {
+		title = "SUGGESTIONS"
 		left := []string{"SUGGESTIONS"}
 		right := m.renderSuggestions()
-		return joinColumns(left, right, 42)
+		body = joinColumns(left, right, 42)
+	} else {
+		left := m.renderList()
+		right := m.renderDetail()
+		body = joinColumns(left, right, 42)
 	}
-	left := m.renderList()
-	right := m.renderDetail()
-	return joinColumns(left, right, 42)
+	header := renderHeader(title, focus)
+	footer := renderFooter(defaultKeys(), m.status)
+	return renderFrame(header, body, footer)
 }
 
 func (m Model) renderList() []string {
@@ -367,4 +375,8 @@ func padRight(s string, width int) string {
 		return s
 	}
 	return s + strings.Repeat(" ", width-len(s))
+}
+
+func defaultKeys() string {
+	return "j/k move  g interview  r research  p suggestions  s review  ? help  q quit"
 }
