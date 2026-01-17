@@ -69,6 +69,12 @@ func pressKey(m Model, key string) Model {
 	if key == "enter" {
 		msg = tea.KeyMsg{Type: tea.KeyEnter}
 	}
+	if key == "tab" {
+		msg = tea.KeyMsg{Type: tea.KeyTab}
+	}
+	if key == "esc" {
+		msg = tea.KeyMsg{Type: tea.KeyEsc}
+	}
 	updated, _ := m.Update(msg)
 	return updated.(Model)
 }

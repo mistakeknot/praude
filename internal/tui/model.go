@@ -26,6 +26,7 @@ type Model struct {
 	width       int
 	mdCache     *MarkdownCache
 	overlay     string
+	focus       string
 	interview   interviewState
 	suggestions suggestionsState
 	input       string
@@ -37,10 +38,10 @@ func NewModel() Model {
 		return Model{err: err.Error(), mode: "list"}
 	}
 	if _, err := os.Stat(project.RootDir(cwd)); err != nil {
-		return Model{err: "Not initialized", root: cwd, mode: "list", router: Router{active: "list"}, width: 120, mdCache: NewMarkdownCache()}
+		return Model{err: "Not initialized", root: cwd, mode: "list", router: Router{active: "list"}, width: 120, mdCache: NewMarkdownCache(), focus: "LIST"}
 	}
 	list, _ := specs.LoadSummaries(project.SpecsDir(cwd))
-	return Model{summaries: list, root: cwd, mode: "list", router: Router{active: "list"}, width: 120, mdCache: NewMarkdownCache()}
+	return Model{summaries: list, root: cwd, mode: "list", router: Router{active: "list"}, width: 120, mdCache: NewMarkdownCache(), focus: "LIST"}
 }
 
 func (m Model) Init() tea.Cmd { return nil }
@@ -108,6 +109,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch key {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "tab":
+			if m.focus == "LIST" {
+				m.focus = "DETAIL"
+			} else {
+				m.focus = "LIST"
+			}
 		case "?":
 			m.overlay = "help"
 		case "`":
@@ -138,6 +145,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.selected > 0 {
 				m.selected--
 			}
+		case "G":
+			if len(m.summaries) > 0 {
+				m.selected = len(m.summaries) - 1
+			}
 		}
 	case tea.WindowSizeMsg:
 		if msg.Width > 0 {
@@ -149,7 +160,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	title := "LIST"
-	focus := "LIST"
+	focus := m.focus
 	var body string
 	if m.overlay != "" {
 		title = "HELP"
@@ -430,5 +441,5 @@ func padRight(s string, width int) string {
 }
 
 func defaultKeys() string {
-	return "j/k move  g interview  r research  p suggestions  s review  ? help  q quit"
+	return "j/k move  tab focus  g interview  r research  p suggestions  s review  ? help  q quit"
 }

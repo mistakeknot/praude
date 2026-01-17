@@ -194,6 +194,19 @@ metadata:
 	}
 }
 
+func TestFocusIndicatorShown(t *testing.T) {
+	m := NewModel()
+	out := stripANSI(m.View())
+	if !strings.Contains(out, "[LIST]") {
+		t.Fatalf("expected focus indicator")
+	}
+	m = pressKey(m, "tab")
+	out = stripANSI(m.View())
+	if !strings.Contains(out, "[DETAIL]") {
+		t.Fatalf("expected detail focus indicator")
+	}
+}
+
 func TestKeyLaunchesResearchAndSetsStatus(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, ".praude", "specs"), 0o755); err != nil {
