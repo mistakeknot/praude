@@ -25,10 +25,11 @@ func renderList(state *SharedState) []string {
 	if state == nil {
 		return lines
 	}
-	if len(state.Summaries) == 0 {
+	items := filterSummaries(state.Summaries, state.Filter)
+	if len(items) == 0 {
 		return append(lines, "No PRDs yet.")
 	}
-	for i, s := range state.Summaries {
+	for i, s := range items {
 		prefix := "  "
 		if i == state.Selected {
 			prefix = "> "
