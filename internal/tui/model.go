@@ -24,6 +24,7 @@ type Model struct {
 	status      string
 	router      Router
 	width       int
+	mdCache     *MarkdownCache
 	interview   interviewState
 	suggestions suggestionsState
 	input       string
@@ -35,10 +36,10 @@ func NewModel() Model {
 		return Model{err: err.Error(), mode: "list"}
 	}
 	if _, err := os.Stat(project.RootDir(cwd)); err != nil {
-		return Model{err: "Not initialized", root: cwd, mode: "list", router: Router{active: "list"}, width: 120}
+		return Model{err: "Not initialized", root: cwd, mode: "list", router: Router{active: "list"}, width: 120, mdCache: NewMarkdownCache()}
 	}
 	list, _ := specs.LoadSummaries(project.SpecsDir(cwd))
-	return Model{summaries: list, root: cwd, mode: "list", router: Router{active: "list"}, width: 120}
+	return Model{summaries: list, root: cwd, mode: "list", router: Router{active: "list"}, width: 120, mdCache: NewMarkdownCache()}
 }
 
 func (m Model) Init() tea.Cmd { return nil }
@@ -177,14 +178,24 @@ func (m Model) renderDetail() []string {
 		return lines
 	}
 	sel := m.summaries[m.selected]
-	lines = append(lines, "ID: "+sel.ID)
-	lines = append(lines, "Title: "+sel.Title)
-	lines = append(lines, "Summary: "+sel.Summary)
 	if spec, err := specs.LoadSpec(sel.Path); err == nil {
-		lines = append(lines, formatCompleteness(spec))
-		lines = append(lines, formatCUJDetail(spec))
-		lines = append(lines, formatResearchDetail(spec))
-		lines = append(lines, formatWarnings(spec)...)
+		markdown := detailMarkdown(spec)
+		hash := specs.SpecHash(spec)
+		rendered := markdown
+		if m.mdCache != nil {
+			if cached, ok := m.mdCache.Get(spec.ID, hash); ok {
+				rendered = cached
+			} else {
+				rendered = renderMarkdown(markdown, m.width)
+				m.mdCache.Set(spec.ID, hash, rendered)
+			}
+		} else {
+			rendered = renderMarkdown(markdown, m.width)
+		}
+		trimmed := strings.TrimSpace(rendered)
+		if trimmed != "" {
+			lines = append(lines, strings.Split(trimmed, "\n")...)
+		}
 	}
 	if strings.TrimSpace(m.status) != "" {
 		lines = append(lines, "Last action: "+m.status)

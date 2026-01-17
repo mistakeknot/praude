@@ -3,6 +3,7 @@ package tui
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -187,8 +188,8 @@ metadata:
 		t.Fatal(err)
 	}
 	m := NewModel()
-	out := m.View()
-	if !strings.Contains(out, "Validation warnings") || !strings.Contains(out, "Missing market research") {
+	out := stripANSI(m.View())
+	if !strings.Contains(out, "Validation Warnings") || !strings.Contains(out, "Missing market research") {
 		t.Fatalf("expected validation warnings in view")
 	}
 }
@@ -325,4 +326,9 @@ args = []
 	if !strings.Contains(m.View(), "Last action:") {
 		t.Fatalf("expected last action in view")
 	}
+}
+
+func stripANSI(input string) string {
+	re := regexp.MustCompile(`\x1b\\[[0-9;]*m`)
+	return re.ReplaceAllString(input, "")
 }
