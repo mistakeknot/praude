@@ -26,7 +26,9 @@ filled with example content to demonstrate a "good" PRD.
 Default `praude` launches a two-pane TUI:
 - Left: spec list (ID, title, status, completeness, last updated)
 - Right: spec details with completeness indicators
-Top bar shows project + filter + agent profile; bottom bar shows hotkeys.
+Top bar shows project + view + focus; bottom bar shows hotkeys + status.
+Detail pane renders Markdown for readable PRD sections. Help and tutorial
+overlays are built in (`?` and `` ` ``).
 
 Core actions:
 - `g` guided interview (create PRD)
@@ -34,6 +36,9 @@ Core actions:
 - `p` create suggestions artifact + launch agent
 - `s` review/apply suggestions
 - `j`/`k` navigate
+- `Tab` toggle focus list/detail
+- `?` help
+- `` ` `` tutorial
 - `q` quit
 
 ## Agent Orchestration
