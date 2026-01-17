@@ -25,6 +25,7 @@ type Model struct {
 	router      Router
 	width       int
 	mdCache     *MarkdownCache
+	overlay     string
 	interview   interviewState
 	suggestions suggestionsState
 	input       string
@@ -53,6 +54,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if msg.Type == tea.KeyBackspace {
 			key = "backspace"
+		}
+		if m.overlay != "" {
+			switch key {
+			case "esc", "q":
+				m.overlay = ""
+			case "?":
+				if m.overlay == "help" {
+					m.overlay = ""
+				} else {
+					m.overlay = "help"
+				}
+			case "`":
+				if m.overlay == "tutorial" {
+					m.overlay = ""
+				} else {
+					m.overlay = "tutorial"
+				}
+			}
+			return m, nil
 		}
 		if m.mode == "interview" {
 			switch key {
@@ -88,6 +108,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch key {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "?":
+			m.overlay = "help"
+		case "`":
+			m.overlay = "tutorial"
 		case "g":
 			if m.err == "" {
 				m.mode = "interview"
@@ -127,6 +151,18 @@ func (m Model) View() string {
 	title := "LIST"
 	focus := "LIST"
 	var body string
+	if m.overlay != "" {
+		title = "HELP"
+		overlay := renderHelpOverlay()
+		if m.overlay == "tutorial" {
+			title = "TUTORIAL"
+			overlay = renderTutorialOverlay()
+		}
+		body = overlay
+		header := renderHeader(title, focus)
+		footer := renderFooter(defaultKeys(), m.status)
+		return renderFrame(header, body, footer)
+	}
 	if m.mode == "interview" {
 		title = "INTERVIEW"
 		left := []string{"INTERVIEW"}
