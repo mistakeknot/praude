@@ -16,3 +16,10 @@ func renderFooter(keys, status string) string {
 func renderFrame(header, body, footer string) string {
 	return strings.Join([]string{header, body, footer}, "\n")
 }
+
+func renderSplitView(width int, left, right []string) string {
+	if width < 100 {
+		return strings.Join(left, "\n")
+	}
+	return joinColumns(left, right, 42)
+}

@@ -23,6 +23,7 @@ type Model struct {
 	mode        string
 	status      string
 	router      Router
+	width       int
 	interview   interviewState
 	suggestions suggestionsState
 	input       string
@@ -34,10 +35,10 @@ func NewModel() Model {
 		return Model{err: err.Error(), mode: "list"}
 	}
 	if _, err := os.Stat(project.RootDir(cwd)); err != nil {
-		return Model{err: "Not initialized", root: cwd, mode: "list", router: Router{active: "list"}}
+		return Model{err: "Not initialized", root: cwd, mode: "list", router: Router{active: "list"}, width: 120}
 	}
 	list, _ := specs.LoadSummaries(project.SpecsDir(cwd))
-	return Model{summaries: list, root: cwd, mode: "list", router: Router{active: "list"}}
+	return Model{summaries: list, root: cwd, mode: "list", router: Router{active: "list"}, width: 120}
 }
 
 func (m Model) Init() tea.Cmd { return nil }
@@ -113,6 +114,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selected--
 			}
 		}
+	case tea.WindowSizeMsg:
+		if msg.Width > 0 {
+			m.width = msg.Width
+		}
 	}
 	return m, nil
 }
@@ -125,16 +130,16 @@ func (m Model) View() string {
 		title = "INTERVIEW"
 		left := []string{"INTERVIEW"}
 		right := m.renderInterview()
-		body = joinColumns(left, right, 42)
+		body = renderSplitView(m.width, left, right)
 	} else if m.mode == "suggestions" {
 		title = "SUGGESTIONS"
 		left := []string{"SUGGESTIONS"}
 		right := m.renderSuggestions()
-		body = joinColumns(left, right, 42)
+		body = renderSplitView(m.width, left, right)
 	} else {
 		left := m.renderList()
 		right := m.renderDetail()
-		body = joinColumns(left, right, 42)
+		body = renderSplitView(m.width, left, right)
 	}
 	header := renderHeader(title, focus)
 	footer := renderFooter(defaultKeys(), m.status)
