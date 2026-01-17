@@ -27,6 +27,7 @@ type Model struct {
 	mdCache     *MarkdownCache
 	overlay     string
 	focus       string
+	search      SearchState
 	interview   interviewState
 	suggestions suggestionsState
 	input       string
@@ -75,6 +76,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
+		if m.search.Active {
+			done, canceled := updateSearch(&m.search, key)
+			if done {
+				m.search.Active = false
+				if canceled {
+					m.search.Query = ""
+				}
+			}
+			return m, nil
+		}
 		if m.mode == "interview" {
 			switch key {
 			case "q", "ctrl+c":
@@ -109,6 +120,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch key {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "/":
+			m.search.Active = true
+			m.search.Query = ""
 		case "tab":
 			if m.focus == "LIST" {
 				m.focus = "DETAIL"
@@ -198,7 +212,7 @@ func (m Model) renderList() []string {
 	if m.err != "" {
 		return []string{"PRDs", m.err}
 	}
-	state := &SharedState{Summaries: m.summaries, Selected: m.selected}
+	state := &SharedState{Summaries: m.summaries, Selected: m.selected, Filter: m.search.Query}
 	return renderList(state)
 }
 
@@ -429,5 +443,5 @@ func padRight(s string, width int) string {
 }
 
 func defaultKeys() string {
-	return "j/k move  tab focus  g interview  r research  p suggestions  s review  ? help  q quit"
+	return "j/k move  / search  tab focus  g interview  r research  p suggestions  s review  ? help  q quit"
 }

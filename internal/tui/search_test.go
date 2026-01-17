@@ -18,3 +18,12 @@ func TestSearchFiltersList(t *testing.T) {
 		t.Fatalf("expected filtered list")
 	}
 }
+
+func TestSearchModalConsumesKeys(t *testing.T) {
+	m := NewModel()
+	m = pressKey(m, "/")
+	m = pressKey(m, "a")
+	if m.search.Query != "a" {
+		t.Fatalf("expected search query updated")
+	}
+}
