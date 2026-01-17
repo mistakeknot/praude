@@ -1,14 +1,36 @@
 package tui
 
-import "testing"
+import (
+	"testing"
 
-func TestRouterSwitchesScreens(t *testing.T) {
-	m := NewModel()
-	if m.router.active != "list" {
-		t.Fatalf("expected list screen")
+	tea "github.com/charmbracelet/bubbletea"
+)
+
+type dummyScreen struct {
+	title string
+}
+
+func (d dummyScreen) Update(msg tea.Msg, state *SharedState) (Screen, Intent) {
+	return d, Intent{}
+}
+
+func (d dummyScreen) View(state *SharedState) string {
+	return d.title
+}
+
+func (d dummyScreen) Title() string {
+	return d.title
+}
+
+func TestRouterDispatchesToActiveScreen(t *testing.T) {
+	list := dummyScreen{title: "List"}
+	help := dummyScreen{title: "Help"}
+	r := NewRouter(map[string]Screen{"list": list, "help": help}, "list")
+	if r.ActiveName() != "list" {
+		t.Fatalf("expected list")
 	}
-	m.router.Switch("help")
-	if m.router.active != "help" {
-		t.Fatalf("expected help screen")
+	r.Switch("help")
+	if r.ActiveName() != "help" {
+		t.Fatalf("expected help")
 	}
 }
