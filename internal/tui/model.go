@@ -195,23 +195,11 @@ func (m Model) View() string {
 }
 
 func (m Model) renderList() []string {
-	lines := []string{"PRDs"}
 	if m.err != "" {
-		lines = append(lines, m.err)
-		return lines
+		return []string{"PRDs", m.err}
 	}
-	if len(m.summaries) == 0 {
-		lines = append(lines, "No PRDs yet.")
-		return lines
-	}
-	for i, s := range m.summaries {
-		prefix := "  "
-		if i == m.selected {
-			prefix = "> "
-		}
-		lines = append(lines, prefix+s.ID+" "+s.Title)
-	}
-	return lines
+	state := &SharedState{Summaries: m.summaries, Selected: m.selected}
+	return renderList(state)
 }
 
 func (m Model) renderDetail() []string {
